@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Document</title>
+  </head>
+  <body></body>
+  <script>
+    const items = [1, 2, 3, 4, 5];
+    const root1 = document.createElement('div');
+    document.body.appendChild(root1);
+    // Т.к. корневой элемент создаём сами и применяем делегирование, то можно обойтись без поиска на странице, но если использование querySelector является обязательным условием, то можно заменить 2 предыдущие строки кода на эти 4, например:
+    // const element = document.createElement('div');
+    // element.classList.add('root1');
+    // document.body.appendChild(element);
+    // const root1 = document.querySelector('.root1');
+    root1.innerHTML = items.map((item) => `<button>${item}</button>`).join('');
+    root1.onclick = (e) => {
+      // Клик по корневому элементу не обрабатываем
+      if (e.target === root1) return;
+      // Здесь уже все таргеты - созданные нами потомки
+      alert(e.target.innerText);
+    };
+    // То же без делегирования и с querySelectorAll
+    const root2 = document.createElement('div');
+    document.body.appendChild(root2);
+    root2.innerHTML = items.map((item) => `<button>${item}</button>`).join('');
+    root2.querySelectorAll('button').forEach((item) => item.addEventListener('click', () => alert(item.innerText)));
+  </script>
+</html>

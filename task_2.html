@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Document</title>
+    <style>
+      #root {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        min-height: 100vh;
+        justify-content: center;
+        align-items: center;
+      }
+      .dialog {
+        padding: 0;
+      }
+      .dialog::backdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .popup {
+        padding: 20px 0 20px 20px;
+        max-width: 500px;
+      }
+      .form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      .text-input {
+        width: 220px;
+      }
+      @media (max-width: 600px) {
+        .popup {
+          padding: 16px;
+        }
+        .form {
+          flex-direction: column;
+          align-items: start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+  <script>
+    // Находим корневой элемент на странице
+    const rootElement = document.querySelector('#root');
+    // Добавляем содержимое корневому элементу
+    rootElement.innerHTML =
+      // Не уверен, что правильно понял насчёт вывода JSON, поэтому сделал вывод в 2 вариантах
+      `<div class="output"></div>
+      <table class="table"></table>
+      <button class="start">Начать</button>
+      <dialog class="dialog">
+        <div class="popup">
+          <h3 class="popup__title">Заполните форму</h3>
+          <form class="form"></form>
+        </div>
+      </dialog>`;
+    // Получаем ссылки на добавленные элементы
+    const output = document.querySelector('.output');
+    const table = document.querySelector('.table');
+    const startBtn = document.querySelector('.start');
+    const dialog = document.querySelector('.dialog');
+    const popup = dialog.querySelector('.popup');
+    const popupForm = popup.querySelector('.form');
+    // Добавляем содержимое в popup
+    popupForm.innerHTML = Array(6)
+      .fill()
+      .map((_, i) => {
+        if (i === 5) return '<button class="submit-btn" type="submit" disabled >Отправить</button>';
+        const type = i === 4 ? 'checkbox' : 'text';
+        return `<input name= ${type + i} class=${type + '-input'} type=${type} />`;
+      })
+      .join('');
+    // Получаем ссылки на добавленные элементы
+    const submitBtn = popupForm.querySelector('.submit-btn');
+    const checkbox = popupForm.querySelector('.checkbox-input');
+    const textInputs = [...popupForm.querySelectorAll('.text-input')];
+    // Активируем кнопку отправки формы при условии заполнения всех текстовых полей. Добавление атрибута required не сработает, т.к. дефолтное поведение формы будем отменять.
+    textInputs.forEach((input) =>
+      input.addEventListener('input', () => {
+        submitBtn.disabled = textInputs.some(({value}) => value === '');
+      })
+    );
+    //Подписываемся на события
+    startBtn.addEventListener('click', (e) => {
+      // Останавливаем всплытие клика по кнопке, открывающей popup, чтобы не сработал добавленный ниже обработчик клика на window
+      e.stopPropagation();
+      // Открываем popup
+      dialog.showModal();
+      // Добавляем на window обработчик, закрывающий popup
+      window.addEventListener('click', handlePopupOuterClick);
+    });
+    // Удаляем с window обработчик клика при закрытии popup
+    dialog.addEventListener('close', () => {
+      window.removeEventListener('click', handlePopupOuterClick);
+    });
+    // Останавливаем всплытие кликов внутри popup, чтоб не сработал обработчик на window
+    popup.addEventListener('click', (e) => e.stopPropagation());
+
+    submitBtn.addEventListener('click', handleSubmit);
+    // Объявляем отдельно функции-обработчики, которые не можем или не хотим инлайнить.
+    function handlePopupOuterClick() {
+      // Закрываем popup
+      dialog.close();
+    }
+    function handleSubmit(e) {
+      // Предотвращаем дефолтное поведение формы, чтоб избежать отправки запроса. Побочный эффект - приходится реализовывать вручную ту часть поведения, которая нужна.
+      e.preventDefault();
+      // Собираем данные с тектовых полей ввода
+      const values = textInputs.reduce((acc, cur) => ((acc[cur.name] = cur.value), acc), {});
+      // К результату добавляем состояние чекбокса
+      values.checkbox = checkbox.checked;
+      // Очищаем форму
+      popupForm.reset();
+      // Выводим данные на страницу в виде JSON, как написано в задании и в виде таблицы, на случай если я не правильно понял задание
+      output.innerText = JSON.stringify(values);
+      table.innerHTML = renderTable(values);
+      // Закрываем popup
+      dialog.close();
+    }
+
+    function renderTable(values) {
+      return Object.keys(values)
+        .map((key) => `<tr><td>${key}</td><td>${values[key]}</td></tr>`)
+        .join('');
+    }
+  </script>
+</html>
