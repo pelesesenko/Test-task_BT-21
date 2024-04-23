@@ -1,3 +1,5 @@
+// Компонент-страница. Существует подход, при котором тут не должно быть вёрстки и стилей. В основном так и сделал, не
+стал только заморачиваться с блоком для вывода JSON и кнопкой.
 <template>
   <Layout title="Главная страница">
     <Popup
@@ -6,6 +8,7 @@
     >
       <Form @submit="onSubmit" />
     </Popup>
+    <div v-if="!!output.length">Это не ошибка, это JSON!</div>
     <div>{{ output }}</div>
     <Table :rows="rows" />
     <button @click="openPopup">Начать</button>
